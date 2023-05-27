@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": "^8.0",
-        "renoki-co/laravel-exporter-contracts": "^2.0",
+        "renoki-co/laravel-exporter-contracts": "dev-master",
         "laravel/horizon": "^5.8"
     },
     "autoload": {
@@ -36,6 +36,12 @@
         "phpunit/phpunit": "^9.5.13",
         "predis/predis": "^2.0"
     },
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/blueoceanideas/laravel-exporter-contracts"
+        }
+    ],
     "config": {
         "sort-packages": true
     },
