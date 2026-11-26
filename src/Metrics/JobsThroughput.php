@@ -2,7 +2,7 @@
 
 namespace RenokiCo\HorizonExporter\Metrics;
 
-use Laravel\Horizon\Contracts\MetricsRepository;
+use RenokiCo\HorizonExporter\Measurements;
 use RenokiCo\LaravelExporter\GaugeMetric;
 
 class JobsThroughput extends GaugeMetric
@@ -21,23 +21,11 @@ class JobsThroughput extends GaugeMetric
      */
     public function update(): void
     {
-        if ($jobs = app(MetricsRepository::class)->measuredJobs()) {
-            foreach ($jobs as $job) {
-                $value = app(MetricsRepository::class)->throughputForJob($job);
-
-                if (config('horizon-exporter.include_snapshots')) {
-                    foreach (app(MetricsRepository::class)->snapshotsForJob($job) as $snapshot) {
-                        $value += $snapshot->throughput;
-                    }
-                }
-
-                $this->set(
-                    value: $value,
-                    labels: [
-                        'job' => $job,
-                    ],
-                );
-            }
+        foreach (app(Measurements::class)->of('job') as $job => $measured) {
+            $this->set(
+                value: $measured['throughput'],
+                labels: ['job' => $job],
+            );
         }
     }
 

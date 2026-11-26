@@ -2,7 +2,7 @@
 
 namespace RenokiCo\HorizonExporter\Metrics;
 
-use Laravel\Horizon\Contracts\MetricsRepository;
+use RenokiCo\HorizonExporter\Measurements;
 use RenokiCo\LaravelExporter\GaugeMetric;
 use RenokiCo\LaravelExporter\Metric;
 
@@ -22,17 +22,11 @@ class JobsRuntime extends GaugeMetric
      */
     public function update(): void
     {
-        if ($jobs = app(MetricsRepository::class)->measuredJobs()) {
-            foreach ($jobs as $job) {
-                $value = collect(config('horizon-exporter.include_snapshots') ? app(MetricsRepository::class)->snapshotsForJob($job) : [])
-                    ->merge([(object) ['runtime' => app(MetricsRepository::class)->runtimeForJob($job)]])
-                    ->average('runtime');
-
-                $this->set(
-                    value: $value,
-                    labels: ['job' => $job],
-                );
-            }
+        foreach (app(Measurements::class)->of('job') as $job => $measured) {
+            $this->set(
+                value: $measured['runtime'],
+                labels: ['job' => $job],
+            );
         }
     }
 

@@ -2,7 +2,7 @@
 
 namespace RenokiCo\HorizonExporter\Metrics;
 
-use Laravel\Horizon\Contracts\MetricsRepository;
+use RenokiCo\HorizonExporter\Measurements;
 use RenokiCo\LaravelExporter\GaugeMetric;
 
 class QueuesRuntime extends GaugeMetric
@@ -21,17 +21,11 @@ class QueuesRuntime extends GaugeMetric
      */
     public function update(): void
     {
-        if ($queues = app(MetricsRepository::class)->measuredQueues()) {
-            foreach ($queues as $queue) {
-                $value = collect(config('horizon-exporter.include_snapshots') ? app(MetricsRepository::class)->snapshotsForQueue($queue) : [])
-                    ->merge([(object) ['runtime' => app(MetricsRepository::class)->runtimeForQueue($queue)]])
-                    ->average('runtime');
-
-                $this->set(
-                    value: $value,
-                    labels: ['queue' => $queue],
-                );
-            }
+        foreach (app(Measurements::class)->of('queue') as $queue => $measured) {
+            $this->set(
+                value: $measured['runtime'],
+                labels: ['queue' => $queue],
+            );
         }
     }
 
