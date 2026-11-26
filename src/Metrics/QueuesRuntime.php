@@ -2,7 +2,7 @@
 
 namespace RenokiCo\HorizonExporter\Metrics;
 
-use Laravel\Horizon\Contracts\MetricsRepository;
+use RenokiCo\HorizonExporter\Measurements;
 use RenokiCo\LaravelExporter\GaugeMetric;
 
 class QueuesRuntime extends GaugeMetric
@@ -21,17 +21,22 @@ class QueuesRuntime extends GaugeMetric
      */
     public function update(): void
     {
-        if ($queues = app(MetricsRepository::class)->measuredQueues()) {
-            foreach ($queues as $queue) {
-                $value = collect(config('horizon-exporter.include_snapshots') ? app(MetricsRepository::class)->snapshotsForQueue($queue) : [])
-                    ->merge([(object) ['runtime' => app(MetricsRepository::class)->runtimeForQueue($queue)]])
-                    ->average('runtime');
+        foreach (Measurements::read('queue', 'runtime') as $queue => [$runtime, $snapshots]) {
+            // The average of the snapshots' runtimes and the current one, as Collection::average('runtime')
+            // computes it (nulls left out, summed in order), without a collection per queue.
+            $sum = $count = 0;
 
-                $this->set(
-                    value: $value,
-                    labels: ['queue' => $queue],
-                );
+            foreach ([...$snapshots, (object) ['runtime' => (float) $runtime]] as $snapshot) {
+                if (isset($snapshot->runtime)) {
+                    $sum += $snapshot->runtime;
+                    $count++;
+                }
             }
+
+            $this->set(
+                value: $sum / $count,
+                labels: ['queue' => $queue],
+            );
         }
     }
 
