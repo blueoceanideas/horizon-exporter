@@ -280,6 +280,9 @@ class MetricsTest extends TestCase
         $this->work();
         $this->work();
 
+        // The next scrape is a new request, which flushes the scoped Measurements.
+        $this->app->forgetScopedInstances();
+
         $response = Exporter::exportAsPlainText('horizon-metrics');
 
         $this->assertStringContainsString(

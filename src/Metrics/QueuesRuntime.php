@@ -21,20 +21,9 @@ class QueuesRuntime extends GaugeMetric
      */
     public function update(): void
     {
-        foreach (Measurements::read('queue', 'runtime') as $queue => [$runtime, $snapshots]) {
-            // The average of the snapshots' runtimes and the current one, as Collection::average('runtime')
-            // computes it (nulls left out, summed in order), without a collection per queue.
-            $sum = $count = 0;
-
-            foreach ([...$snapshots, (object) ['runtime' => (float) $runtime]] as $snapshot) {
-                if (isset($snapshot->runtime)) {
-                    $sum += $snapshot->runtime;
-                    $count++;
-                }
-            }
-
+        foreach (app(Measurements::class)->of('queue') as $queue => $measured) {
             $this->set(
-                value: $sum / $count,
+                value: $measured['runtime'],
                 labels: ['queue' => $queue],
             );
         }

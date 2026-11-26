@@ -21,15 +21,9 @@ class JobsThroughput extends GaugeMetric
      */
     public function update(): void
     {
-        foreach (Measurements::read('job', 'throughput') as $job => [$throughput, $snapshots]) {
-            $value = (int) $throughput;
-
-            foreach ($snapshots as $snapshot) {
-                $value += $snapshot->throughput;
-            }
-
+        foreach (app(Measurements::class)->of('job') as $job => $measured) {
             $this->set(
-                value: $value,
+                value: $measured['throughput'],
                 labels: ['job' => $job],
             );
         }

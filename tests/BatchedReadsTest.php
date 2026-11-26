@@ -54,6 +54,7 @@ class BatchedReadsTest extends TestCase
     public function test_redis_round_trips_do_not_grow_with_the_measured_jobs()
     {
         $roundTrips = function () {
+            $this->app->forgetScopedInstances(); // A new scrape is a new request.
             $calls = 0;
             Redis::connection('horizon')->setEventDispatcher($this->app['events']);
             Event::listen(CommandExecuted::class, function () use (&$calls) {

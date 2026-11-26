@@ -22,20 +22,9 @@ class JobsRuntime extends GaugeMetric
      */
     public function update(): void
     {
-        foreach (Measurements::read('job', 'runtime') as $job => [$runtime, $snapshots]) {
-            // The average of the snapshots' runtimes and the current one, as Collection::average('runtime')
-            // computes it (nulls left out, summed in order), without a collection per job.
-            $sum = $count = 0;
-
-            foreach ([...$snapshots, (object) ['runtime' => (float) $runtime]] as $snapshot) {
-                if (isset($snapshot->runtime)) {
-                    $sum += $snapshot->runtime;
-                    $count++;
-                }
-            }
-
+        foreach (app(Measurements::class)->of('job') as $job => $measured) {
             $this->set(
-                value: $sum / $count,
+                value: $measured['runtime'],
                 labels: ['job' => $job],
             );
         }

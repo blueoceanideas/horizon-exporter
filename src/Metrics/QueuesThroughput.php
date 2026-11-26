@@ -21,15 +21,9 @@ class QueuesThroughput extends GaugeMetric
      */
     public function update(): void
     {
-        foreach (Measurements::read('queue', 'throughput') as $queue => [$throughput, $snapshots]) {
-            $value = (int) $throughput;
-
-            foreach ($snapshots as $snapshot) {
-                $value += $snapshot->throughput;
-            }
-
+        foreach (app(Measurements::class)->of('queue') as $queue => $measured) {
             $this->set(
-                value: $value,
+                value: $measured['throughput'],
                 labels: ['queue' => $queue],
             );
         }

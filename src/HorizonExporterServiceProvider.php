@@ -60,6 +60,7 @@ class HorizonExporterServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        // Scoped, not a singleton: Octane and the queue worker flush it at each new request or job.
+        $this->app->scoped(Measurements::class);
     }
 }
